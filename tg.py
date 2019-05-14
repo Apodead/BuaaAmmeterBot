@@ -123,7 +123,7 @@ def handle_callback_data(update, context):
                 msgid = bot.sendMessage(chat_id=chat_id, text=text, parse_mode="HTML").message_id
             else:
                 bot.editMessageText(chat_id=chat_id, message_id=msgid, text=text, parse_mode="HTML")
-        bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=None)
+        #bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=None)
         updateMsg("正在刷新...")
         for mid in mids:
             msg_text += generate_query_result(mid)
@@ -131,7 +131,7 @@ def handle_callback_data(update, context):
             updateMsg(msg_text)
         keyboard = [[telegram.InlineKeyboardButton("刷新",callback_data=data)]]
         reply_markup = telegram.InlineKeyboardMarkup(keyboard)
-        bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=reply_markup)
+        #bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=reply_markup)
 def handle_help_event(update, context):
     help_msg="欢迎使用 BuaaAmmter 电表查询 bot 。本 bot 目前仅提供绑定并查询电表余额的功能。\n\n"\
              "使用方法：请内网登录\nhttp://shsd.buaa.edu.cn\n查询您的购电表号，并使用 /bind 命令绑定"\
