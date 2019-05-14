@@ -92,11 +92,18 @@ def handle_query_event(update, context):
             msgid = bot.sendMessage(chat_id=chat_id, text=text, parse_mode="HTML").message_id
         else:
             bot.editMessageText(chat_id=chat_id, message_id=msgid, text=text, parse_mode="HTML")
-    for i in ((db('tg_user_id')==uid)):
-        msg_text += generate_query_result(i['meter_id'])
-        logging.debug("Updating message text:"+msg_text)
-        updateMsg(msg_text)
-        refresh_mids += ':' + str(i['meter_id'])
+    if context.args != None:
+        for i in context.args:
+            msg_text += generate_query_result(i)
+            logging.debug("Updating message text:"+msg_text)
+            updateMsg(msg_text)
+            refresh_mids += ':' + str(i)
+    else:
+        for i in ((db('tg_user_id')==uid)):
+            msg_text += generate_query_result(i['meter_id'])
+            logging.debug("Updating message text:"+msg_text)
+            updateMsg(msg_text)
+            refresh_mids += ':' + str(i['meter_id'])
     keyboard = [[telegram.InlineKeyboardButton("刷新",callback_data="refresh"+refresh_mids)]]
     reply_markup = telegram.InlineKeyboardMarkup(keyboard)
     bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=reply_markup)
