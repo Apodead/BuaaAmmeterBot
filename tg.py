@@ -13,7 +13,7 @@ bot = telegram.Bot(token=conf.bot_token, request=pp, base_url=conf.base_url)
 updater = telegram.ext.Updater(bot=bot, use_context=True)
 
 log = logging.RootLogger(level = logging.DEBUG)
-logging.basicConfig(level = logging.INFO)
+logging.basicConfig(level = logging.WARNING)
 
 db = Base('bind.pdl')
 if not db.exists():
@@ -28,7 +28,7 @@ def handle_bind_event(update, context):
     for mid in context.args:
         if [i for i in ((db('tg_user_id')==uid)&(db('meter_id')==mid))]==[]:
             db.insert(uid,mid)
-            mids += '<pre>' + str(mid) + '<\pre>\n'
+            mids += '<pre>' + str(mid) + '</pre>\n'
             log.info("Insert new bind record:{} - {}".format(uid,mid))
     db.commit()
     if mids == "":
@@ -127,11 +127,12 @@ def handle_callback_data(update, context):
         bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=reply_markup)
 def handle_help_event(update, context):
     help_msg="欢迎使用 BuaaAmmter 电表查询 bot 。本 bot 目前仅提供绑定并查询电表余额的功能。\n\n"\
-             "使用方法：请内网登录 http://shsd.buaa.edu.cn 查询您的购电表号，并使用 /bind 命令绑定"\
+             "使用方法：请内网登录\nhttp://shsd.buaa.edu.cn\n查询您的购电表号，并使用 /bind 命令绑定"\
              "至您的帐号。您可以使用 /query 查询您绑定的所有电表的余额信息。\n\n"\
              "命令列表：\n/bind AmmeterId ... 绑定一个或者多个电表。\n/unbind AmmeterId ... 解除"\
              "一个或者多个电表的绑定；若不指定购电表号，则将解绑所有电表。\n/list 显示已绑定的电表"\
              "\n/query 查询所有已绑定电表"
+    bot.sendMessage(chat_id=update.effective_chat.id, text=help_msg, parse_mode="HTML")
 def handle_start_event(update, context):
     handle_help_event(update, context)
 
