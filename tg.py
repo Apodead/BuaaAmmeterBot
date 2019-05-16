@@ -37,11 +37,14 @@ def handle_bind_event(update, context):
         bot.sendMessage(update.effective_chat.id, "已绑定以下购电表号：\n{}使用 /list 查看所有已绑定的电表。".format(mids), parse_mode="HTML")
     return
 def handle_unbind_event(update, context):
-    log.info("Handle bind event.")
+    logging.info("Handle unbind event.")
     uid = update.effective_user.id
     mids = ""
-    if context.args == None:
+    if context.args == []:
+        for i in ((db('tg_user_id')==uid)):
+            mids += '<pre>' + i['meter_id'] + '</pre>\n'
         db.delete(db('tg_user_id')==uid)
+        db.commit()
     else:
         for i in ((db('tg_user_id')==uid)&(db('meter_id')==context.args)):
             mids += '<pre>' + i['meter_id'] + '</pre>\n'
@@ -92,7 +95,8 @@ def handle_query_event(update, context):
             msgid = bot.sendMessage(chat_id=chat_id, text=text, parse_mode="HTML").message_id
         else:
             bot.editMessageText(chat_id=chat_id, message_id=msgid, text=text, parse_mode="HTML")
-    if context.args != None:
+    logging.debug("/query:Context args:{}".format(context.args))
+    if context.args != []:
         for i in context.args:
             msg_text += generate_query_result(i)
             logging.debug("Updating message text:"+msg_text)
@@ -104,9 +108,16 @@ def handle_query_event(update, context):
             logging.debug("Updating message text:"+msg_text)
             updateMsg(msg_text)
             refresh_mids += ':' + str(i['meter_id'])
+    if msg_text == "":
+        msg_text = "没有找到电表记录。请使用 /bind 命令绑定电表，或者在 /query 后跟随需要查询的购电表号。\n"
+        updateMsg(msg_text)
+        return
     keyboard = [[telegram.InlineKeyboardButton("刷新",callback_data="refresh"+refresh_mids)]]
     reply_markup = telegram.InlineKeyboardMarkup(keyboard)
+    logging.debug("Edit reply markup:chat_id={}, msg_id={}.".format(chat_id,msgid))
+    #updateMsg(msg_text, reply_markup=reply_markup)
     bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=reply_markup)
+    
 
 def handle_callback_data(update, context):
     data = update.callback_query.data
@@ -131,7 +142,7 @@ def handle_callback_data(update, context):
             updateMsg(msg_text)
         keyboard = [[telegram.InlineKeyboardButton("刷新",callback_data=data)]]
         reply_markup = telegram.InlineKeyboardMarkup(keyboard)
-        #bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=reply_markup)
+        bot.edit_message_reply_markup(chat_id=chat_id, message_id=msgid, reply_markup=reply_markup)
 def handle_help_event(update, context):
     help_msg="欢迎使用 BuaaAmmter 电表查询 bot 。本 bot 目前仅提供绑定并查询电表余额的功能。\n\n"\
              "使用方法：请内网登录\nhttp://shsd.buaa.edu.cn\n查询您的购电表号，并使用 /bind 命令绑定"\
